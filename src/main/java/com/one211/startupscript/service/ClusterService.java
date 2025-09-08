@@ -23,6 +23,7 @@ public class ClusterService {
         ClusterRequest request = mapper.readValue(body, ClusterRequest.class);
         String clusterName = request.clusterName();
         String script = request.startUpScript();
+        System.out.println(script);
 
         if (clusterName == null || clusterName.isBlank() || script == null || script.isBlank()) {
             throw new IllegalArgumentException("Missing required fields: clusterName or startUpScript");

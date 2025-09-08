@@ -1,13 +1,13 @@
 package com.one211.startupscript.util;
 
+import com.one211.startupscript.auth.AuthService;
+import com.one211.startupscript.auth.AuthFilter;
 import com.one211.startupscript.config.AppConfig;
 import com.one211.startupscript.container.ContainerManager;
 import com.one211.startupscript.controller.ClusterController;
 import com.one211.startupscript.service.ClusterService;
 import io.helidon.webserver.WebServer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -23,48 +23,108 @@ class ServerStartupScriptIntegrationTest {
 
     @BeforeAll
     static void setup() {
-        // Use real AppConfig and ContainerManager
-        AppConfig config = new AppConfig(); // set image, user, password in AppConfig if needed
+        AppConfig config = new AppConfig();
         containerManager = new ContainerManager(config);
         ClusterService clusterService = new ClusterService(containerManager);
         ClusterController controller = new ClusterController(clusterService);
+        AuthService authService = new AuthService(config.getAuthUser(), config.getAuthPassword());
 
-        // Start Helidon server on dynamic port
         server = WebServer.builder()
-                .routing(r -> controller.register(r))
+                .routing(r -> {
+                    r.addFilter(new AuthFilter(authService));
+                    controller.register(r);
+                })
                 .port(0)
                 .build()
-                .start()
-                ;
+                .start();
     }
+
     @AfterAll
     static void stopServer() {
         if (server != null) {
             server.stop();
         }
     }
+
     @Test
-    void testClusterEndpointSuccess() throws Exception {
+    void testClusterEndpointWithValidAuth() throws Exception {
         int port = server.port();
         HttpClient client = HttpClient.newHttpClient();
 
         String jsonBody = """
-                {
-                  "clusterName": "IntegrationCluster",
-                  "startUpScript": "CREATE TABLE abc(id INT);"
-                }
-                """;
+            {
+              "clusterName": "SecureCluster",
+              "startUpScript": "CREATE TABLE secure (id INT, name VARCHAR);"
+            }
+            """;
+
+        String basicAuth = java.util.Base64.getEncoder()
+                .encodeToString("admin:admin".getBytes());
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:" + port + "/?orgId=org-1"))
+                .uri(new URI("http://localhost:" + port + "/cluster?orgId=org-secure"))
                 .header("Content-Type", "application/json")
+                .header("Authorization", "Basic " + basicAuth)
                 .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
         assertEquals(200, response.statusCode());
-        assertTrue(response.body().contains("IntegrationCluster")); // clusterName should be in response
+        assertTrue(response.body().contains("SecureCluster"));
+        assertTrue(response.body().contains("org-secure"));
+    }
+
+    @Test
+    void testClusterEndpointWithoutAuth() throws Exception {
+        int port = server.port();
+        HttpClient client = HttpClient.newHttpClient();
+
+        String jsonBody = """
+            {
+              "clusterName": "NoAuthCluster",
+              "startUpScript": "CREATE TABLE noauth (id INT, name VARCHAR);"
+            }
+            """;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:" + port + "/cluster?orgId=org-noauth"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(401, response.statusCode());
+        assertTrue(response.body().contains("Unauthorized"));
+    }
+
+    @Test
+    void testClusterEndpointWithInvalidAuth() throws Exception {
+        int port = server.port();
+        HttpClient client = HttpClient.newHttpClient();
+
+        String jsonBody = """
+            {
+              "clusterName": "BadAuthCluster",
+              "startUpScript": "CREATE TABLE bad (id INT, name VARCHAR);"
+            }
+            """;
+
+        String badAuth = java.util.Base64.getEncoder()
+                .encodeToString("wrong:creds".getBytes());
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI("http://localhost:" + port + "/cluster?orgId=org-badauth"))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Basic " + badAuth)
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(401, response.statusCode());
+        assertTrue(response.body().contains("Unauthorized"));
     }
 
     @Test
@@ -73,15 +133,19 @@ class ServerStartupScriptIntegrationTest {
         HttpClient client = HttpClient.newHttpClient();
 
         String jsonBody = """
-                {
-                  "clusterName": "IntegrationCluster",
-                  "startUpScript": "CREATE TABLE abc(id INT);"
-                }
-                """;
+            {
+              "clusterName": "MissingOrg",
+              "startUpScript": "CREATE TABLE missing (id INT, name VARCHAR);"
+            }
+            """;
+
+        String basicAuth = java.util.Base64.getEncoder()
+                .encodeToString("admin:admin".getBytes());
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("http://localhost:" + port + "/")) // missing orgId
+                .uri(new URI("http://localhost:" + port + "/cluster")) // missing orgId
                 .header("Content-Type", "application/json")
+                .header("Authorization", "Basic " + basicAuth)
                 .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();
 
@@ -95,17 +159,21 @@ class ServerStartupScriptIntegrationTest {
         int port = server.port();
         HttpClient client = HttpClient.newHttpClient();
 
+        String basicAuth = java.util.Base64.getEncoder()
+                .encodeToString("admin:admin".getBytes());
+
         for (int i = 1; i <= 3; i++) {
             String jsonBody = """
-                {
-                  "clusterName": "Cluster-%d",
-                  "startUpScript": "CREATE TABLE t%d(id INT);"
-                }
-                """.formatted(i, i);
+            {
+              "clusterName": "Cluster-%d",
+              "startUpScript": "CREATE TABLE t%d(id INT);"
+            }
+            """.formatted(i, i);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI("http://localhost:" + port + "/?orgId=org-" + i))
+                    .uri(new URI("http://localhost:" + port + "/cluster?orgId=org-" + i))
                     .header("Content-Type", "application/json")
+                    .header("Authorization", "Basic " + basicAuth)
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
@@ -116,10 +184,14 @@ class ServerStartupScriptIntegrationTest {
             assertTrue(response.body().contains("org-" + i));
         }
     }
+
     @Test
     void testMultipleParallelRequests() throws Exception {
         int port = server.port();
         HttpClient client = HttpClient.newHttpClient();
+
+        String basicAuth = java.util.Base64.getEncoder()
+                .encodeToString("admin:admin".getBytes());
 
         var executor = java.util.concurrent.Executors.newFixedThreadPool(3);
         var futures = new java.util.ArrayList<java.util.concurrent.Future<HttpResponse<String>>>();
@@ -128,15 +200,16 @@ class ServerStartupScriptIntegrationTest {
             int finalI = i;
             futures.add(executor.submit(() -> {
                 String jsonBody = """
-                    {
-                      "clusterName": "Cluster-%d",
-                      "startUpScript": "CREATE TABLE t%d(id INT);"
-                    }
-                    """.formatted(finalI, finalI);
+                {
+                  "clusterName": "Cluster-%d",
+                  "startUpScript": "CREATE TABLE t%d(id INT);"
+                }
+                """.formatted(finalI, finalI);
 
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(new URI("http://localhost:" + port + "/?orgId=org-" + finalI))
+                        .uri(new URI("http://localhost:" + port + "/cluster?orgId=org-" + finalI))
                         .header("Content-Type", "application/json")
+                        .header("Authorization", "Basic " + basicAuth)
                         .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                         .build();
 
@@ -145,7 +218,7 @@ class ServerStartupScriptIntegrationTest {
         }
 
         for (int i = 0; i < futures.size(); i++) {
-            HttpResponse<String> response = futures.get(i).get(); // wait for completion
+            HttpResponse<String> response = futures.get(i).get();
             assertEquals(200, response.statusCode(), "Parallel request " + (i + 1) + " failed");
             assertTrue(response.body().contains("Cluster-" + (i + 1)));
             assertTrue(response.body().contains("org-" + (i + 1)));
@@ -154,6 +227,37 @@ class ServerStartupScriptIntegrationTest {
         executor.shutdown();
     }
 
+    @Test
+    void testMultipleContainersSequentially() throws Exception {
+        int port = server.port();
+        HttpClient client = HttpClient.newHttpClient();
+
+        String basicAuth = java.util.Base64.getEncoder()
+                .encodeToString("admin:admin".getBytes());
+
+        // Simulate multiple clusters/containers sequentially
+        for (int i = 1; i <= 2; i++) {
+            String clusterName = "ContainerCluster-" + i;
+            String jsonBody = """
+            {
+              "clusterName": "%s",
+              "startUpScript": "CREATE TABLE c%d(id INT);"
+            }
+            """.formatted(clusterName, i);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI("http://localhost:" + port + "/cluster?orgId=org-container-" + i))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Basic " + basicAuth)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            assertEquals(200, response.statusCode(), "Container request " + i + " failed");
+            assertTrue(response.body().contains(clusterName));
+            assertTrue(response.body().contains("org-container-" + i));
+        }
+    }
 
 }
-
