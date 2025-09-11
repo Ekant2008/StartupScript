@@ -20,6 +20,11 @@ public class ClusterController {
 
     public void register(HttpRouting.Builder routing) {
         routing.post("/cluster", this::handleRequest);
+        routing.get("/", this::handleHello);
+    }
+
+    private void handleHello(ServerRequest req, ServerResponse res) {
+        res.send("Hello");
     }
 
     private void handleRequest(ServerRequest req, ServerResponse res) {

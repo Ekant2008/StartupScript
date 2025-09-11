@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -13,100 +12,113 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <arrow.version>18.3.0</arrow.version>
+        <helidon.version>4.2.6</helidon.version> <!-- Use one consistent version -->
     </properties>
+
     <dependencies>
+        <!-- Helidon WebServer + TLS -->
         <dependency>
             <groupId>io.helidon.webserver</groupId>
             <artifactId>helidon-webserver</artifactId>
-            <version>4.2.6</version>
+            <version>${helidon.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.helidon.common</groupId>
+            <artifactId>helidon-common-tls</artifactId>
+            <version>${helidon.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.helidon.config</groupId>
+            <artifactId>helidon-config</artifactId>
+            <version>${helidon.version}</version>
+        </dependency>
+
+        <!-- JSON support -->
+        <dependency>
+            <groupId>io.helidon.http.media</groupId>
+            <artifactId>helidon-http-media-jsonp</artifactId>
+            <version>${helidon.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.helidon.http.media</groupId>
+            <artifactId>helidon-http-media-jsonb</artifactId>
+            <version>${helidon.version}</version>
+        </dependency>
+        <!-- Apache Arrow Flight SQL -->
         <dependency>
             <groupId>org.apache.arrow</groupId>
             <artifactId>flight-sql-jdbc-core</artifactId>
             <version>${arrow.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.helidon.config</groupId>
+            <artifactId>helidon-config-yaml</artifactId>
+            <version>4.2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>io.helidon.config</groupId>
+            <artifactId>helidon-config-hocon</artifactId>
+            <version>4.2.6</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.18</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Dazzleduck Flight/HTTP -->
+        <dependency>
             <groupId>io.dazzleduck.sql</groupId>
             <artifactId>dazzleduck-sql-flight</artifactId>
             <version>0.0.4</version>
         </dependency>
         <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers</artifactId>
-            <version>1.20.3</version> <!-- Use the latest stable version -->
+            <groupId>io.dazzleduck.sql</groupId>
+            <artifactId>dazzleduck-sql-http</artifactId>
+            <version>0.0.4</version>
         </dependency>
 
-        <!-- Optional: for JUnit 5 integration -->
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.13</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.6</version>
+        </dependency>
+
+        <!-- Testcontainers + JUnit -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>1.20.3</version>
+        </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>1.20.3</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>io.dazzleduck.sql</groupId>
-            <artifactId>dazzleduck-sql-http</artifactId>
-            <version>0.0.4</version>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.http.media</groupId>
-            <artifactId>helidon-http-media-jsonp</artifactId>
-            <version>4.2.6</version>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.json</groupId>
-            <artifactId>jakarta.json-api</artifactId>
-            <version>2.1.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.17.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.17.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>2.17.2</version>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.webclient</groupId>
-            <artifactId>helidon-webclient</artifactId>
-            <version>4.3.0-M2</version>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.media</groupId>
-            <artifactId>helidon-media-jsonb</artifactId>
-            <version>3.2.14</version>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.http.media</groupId>
-            <artifactId>helidon-http-media-jsonb</artifactId>
-            <version>4.2.5</version>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.common</groupId>
-            <artifactId>helidon-common-tls</artifactId>
-            <version>4.3.0-M2</version>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.webserver</groupId>
-            <artifactId>helidon-webserver</artifactId>
-            <version>4.2.6</version>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.8.1</version>
+            <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.helidon.webclient/helidon-webclient -->
+        <!-- https://mvnrepository.com/artifact/io.helidon.webclient/helidon-webclient -->
+        <dependency>
+            <groupId>io.helidon.webclient</groupId>
+            <artifactId>helidon-webclient</artifactId>
+            <version>4.2.6</version>
+        </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <!-- Jib for container builds -->
@@ -116,29 +128,24 @@
                 <version>3.4.1</version>
                 <configuration>
                     <container>
-                        <mainClass>com.Startup.script.ServerStartupScript</mainClass>
-                        <jvmFlags>
-                            <jvmFlag>-Xms512m</jvmFlag>
-                            <jvmFlag>-XX:+UseContainerSupport</jvmFlag>
-                            <jvmFlag>-XX:+UseG1GC</jvmFlag>
-                            <jvmFlag>-XX:+UseStringDeduplication</jvmFlag>
-                            <jvmFlag>-XX:+ExitOnOutOfMemoryError</jvmFlag>
-                            <jvmFlag>--add-opens=java.base/sun.nio.ch=ALL-UNNAMED</jvmFlag>
-                            <jvmFlag>--add-opens=java.base/java.nio=ALL-UNNAMED</jvmFlag>
-                            <jvmFlag>--add-opens=java.base/sun.util.calendar=ALL-UNNAMED</jvmFlag>
-                        </jvmFlags>
+                        <mainClass>com.one211.startupscript.ServerStartupScript</mainClass>
                     </container>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>3.2.5</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
                 <configuration>
                     <argLine>--add-opens=java.base/java.nio=org.apache.arrow.memory.core,ALL-UNNAMED</argLine>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
-
 </project>
