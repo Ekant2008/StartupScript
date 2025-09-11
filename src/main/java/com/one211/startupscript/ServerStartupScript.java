@@ -19,13 +19,7 @@ public class ServerStartupScript {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerStartupScript.class);
 
     public static void main(String[] args) throws UnknownHostException {
-        // Merge application.conf + system properties (from -D flags)
-        Config config = Config.builder()
-                .sources(
-                        ConfigSources.classpath("application.conf"),
-                        ConfigSources.systemProperties()
-                )
-                .build();
+        Config config = Config.create();
 
         AppConfig appConfig = new AppConfig(config);
 
@@ -45,16 +39,6 @@ public class ServerStartupScript {
 
         server.start();
 
-        String protocol = appConfig.isTlsEnabled() ? "https" : "http";
-        String host = "0.0.0.0";
-        String reachableHost = config.get("app.reachable-host")
-                .asString()
-                .orElse(InetAddress.getLocalHost().getHostAddress());
-        int port = server.port();
-
-        LOGGER.info("Server bound to {}://{}:{}", protocol, host, port);
-        LOGGER.info("Server accessible at {}://{}:{}", protocol, reachableHost, port);
-        System.out.printf("Server started at %s://%s:%d%n", protocol, reachableHost, port);
 
         Runtime.getRuntime().addShutdownHook(new Thread(containerManager::shutdown));
 

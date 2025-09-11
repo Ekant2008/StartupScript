@@ -11,46 +11,24 @@ public class AppConfig {
 
     // Flight SQL configs
     public String getUser() {
-        return config.get("flight.sql.user").asString().orElse("admin");
+        return config.get("flight.sql.user").asString().get();
     }
 
     public String getPassword() {
-        return config.get("flight.sql.password").asString().orElse("admin");
+        return config.get("flight.sql.password").asString().get();
     }
 
     public String getImage() {
-        return config.get("flight.sql.image").asString().orElse("flight-sql-duckdb:latest");
+        return config.get("flight.sql.image").asString().get();
     }
-
-    // Server configs
-    public int getServerPort() {
-        return config.get("server.port").asInt().orElse(8080);
-    }
-
     // Auth configs
     public String getAuthUser() {
-        return config.get("auth.user").asString().orElse("admin");
+        return config.get("auth.user").asString().get();
     }
 
     public String getAuthPassword() {
-        return config.get("auth.password").asString().orElse("admin");
+        return config.get("auth.password").asString().get();
     }
 
-    // TLS configs
-    public boolean isTlsEnabled() {
-        return config.get("server.tls.enabled").asBoolean().orElse(false);
-    }
-
-    public String getKeystorePath() {
-        return config.get("server.tls.private-key.keystore.resource.path").asString().orElse("keystore.p12");
-    }
-
-    public String getKeystorePassphrase() {
-        return config.get("server.tls.private-key.keystore.passphrase").asString().orElse("Aman@1999");
-    }
-
-    public String getKeystoreAlias() {
-        return config.get("server.tls.private-key.keystore.key-alias").asString().orElse("helidon-server");
-    }
 
 }
