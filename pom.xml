@@ -55,16 +55,6 @@
             <artifactId>helidon-config-hocon</artifactId>
             <version>4.2.6</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-
-        <!-- Dazzleduck Flight/HTTP -->
-        <dependency>
-            <groupId>io.dazzleduck.sql</groupId>
-            <artifactId>dazzleduck-sql-http</artifactId>
-            <version>0.0.4</version>
-        </dependency>
-
-        <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -84,19 +74,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.4.11</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/io.helidon.webclient/helidon-webclient -->
-        <!-- https://mvnrepository.com/artifact/io.helidon.webclient/helidon-webclient -->
         <dependency>
             <groupId>io.helidon.webclient</groupId>
             <artifactId>helidon-webclient</artifactId>
