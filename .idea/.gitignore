@@ -1,0 +1,19 @@
+# IntelliJ IDEA project files
+/.idea/
+/.idea/shelf/
+/.idea/workspace.xml
+/.idea/mavenHomeManager.xml
+
+# Build output
+/target/
+/out/
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Maven wrapper
+

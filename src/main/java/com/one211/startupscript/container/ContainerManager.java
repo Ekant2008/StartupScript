@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
-
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Set;
@@ -15,8 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ContainerManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ContainerManager.class);
-
-    // Keep track of all containers for shutdown
     private final Set<GenericContainer<?>> containers = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final AppConfig config;
 
@@ -40,9 +37,7 @@ public class ContainerManager {
 
         container.start();
         containers.add(container);
-
         LOGGER.info("Container started: flightPort={} hostPort={}", flightPort, container.getMappedPort(flightPort));
-
         return container;
     }
 
@@ -57,9 +52,6 @@ public class ContainerManager {
         );
     }
 
-    /**
-     * Stop all containers
-     */
     public void shutdown() {
         LOGGER.info("Stopping all containers...");
         for (GenericContainer<?> container : containers) {

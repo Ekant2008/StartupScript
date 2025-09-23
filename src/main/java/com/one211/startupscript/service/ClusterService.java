@@ -4,7 +4,6 @@ import com.one211.startupscript.container.ContainerManager;
 import com.one211.startupscript.model.ClusterRequest;
 import com.one211.startupscript.model.ClusterResponse;
 import com.one211.startupscript.model.StatementResult;
-import com.one211.startupscript.util.SqlExecutor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.containers.GenericContainer;
 
@@ -23,14 +22,12 @@ public class ClusterService {
         ClusterRequest request = mapper.readValue(body, ClusterRequest.class);
         String clusterName = request.clusterName();
         String script = request.startUpScript();
-        System.out.println(script);
-
         if (clusterName == null || clusterName.isBlank() || script == null || script.isBlank()) {
             throw new IllegalArgumentException("Missing required fields: clusterName or startUpScript");
         }
 
         GenericContainer<?> container = containerManager.startContainer();
-        int flightPort = container.getExposedPorts().get(0);
+        int flightPort = container.getExposedPorts().getFirst();
         String jdbcUrl = containerManager.buildJdbcUrl(container, flightPort);
 
         StatementResult result = SqlExecutor.executeSingle(jdbcUrl, script);

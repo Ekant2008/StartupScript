@@ -18,26 +18,17 @@ public class AuthFilter implements Filter {
 
     @Override
     public void filter(FilterChain chain, RoutingRequest req, RoutingResponse res) {
-        String authHeader = req.headers()
-                .value(HeaderNames.create("Authorization"))
-                .orElse(null);
-
+        String authHeader = req.headers().value(HeaderNames.create("Authorization")).orElse(null);
         if (authHeader == null || !authHeader.startsWith("Basic ")) {
-            res.status(401)
-                    .header("WWW-Authenticate", "Basic realm=\"startupscript\"")
-                    .send("Unauthorized");
+            res.status(401).header("WWW-Authenticate", "Basic realm=\"startupscript\"").send("Unauthorized");
             return;
         }
-
-        String credentials = new String(Base64.getDecoder()
-                .decode(authHeader.substring("Basic ".length())), StandardCharsets.UTF_8);
-
+        String credentials = new String(Base64.getDecoder().decode(authHeader.substring("Basic ".length())), StandardCharsets.UTF_8);
         String[] parts = credentials.split(":", 2);
         if (parts.length != 2 || !authService.authenticate(parts[0], parts[1])) {
             res.status(401).send("Unauthorized");
             return;
         }
-
         req.context().register(String.class, parts[0]);
         chain.proceed();
     }

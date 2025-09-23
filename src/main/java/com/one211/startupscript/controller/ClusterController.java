@@ -20,11 +20,6 @@ public class ClusterController {
 
     public void register(HttpRouting.Builder routing) {
         routing.post("/cluster", this::handleRequest);
-        routing.get("/", this::handleHello);
-    }
-
-    private void handleHello(ServerRequest req, ServerResponse res) {
-        res.send("Hello");
     }
 
     private void handleRequest(ServerRequest req, ServerResponse res) {
@@ -37,13 +32,9 @@ public class ClusterController {
         try {
             String body = req.content().as(String.class);
             ClusterResponse response = service.processRequest(orgId, body);
-
-            // Serialize to JSON
             String json = mapper.writeValueAsString(response);
             res.send(json);
-
         } catch (Exception e) {
-            LOGGER.error("Error handling request", e);
             res.status(500).send("Internal server error: " + e.getMessage());
         }
     }
